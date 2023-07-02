@@ -5,6 +5,7 @@ source "kcov_common.sh"
 readonly temp_sh="/root/tmp.sh"
 
 DATE_SS=$(date +%s)
+DATE_START=$(date +"$TIME_FMT")
 
 KCONFIG_NAME="kconfig"
 KCONFIG="https://raw.githubusercontent.com/xupengfe/kconfig_diff/main/config-5.18rc4i_kvm"
