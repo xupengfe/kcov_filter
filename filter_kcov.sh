@@ -68,13 +68,13 @@ test_bz() {
   clean_old_vm
   check_bz=$(ls "$bz_file" 2>/dev/null)
   if [[ -z "$check_bz" ]]; then
-    print_err "bzImage:$bz_file does not exist:$check_bz" "$BISECT_LOG"
+    print_err "bzImage:$bz_file does not exist:$check_bz" "$KCOV_LOG"
     exit 1
   fi
 
   # Add max boot time loop check to reduce bisect failed times
   for ((try_num=1;try_num<=boot_try_max;try_num++)); do
-    print_log "Run $bz_file with image:$IMAGE in local port:$PORT, $try_num time" "$BISECT_LOG"
+    print_log "Run $bz_file with image:$IMAGE in local port:$PORT, $try_num time" "$KCOV_LOG"
     qemu-system-x86_64 \
       -m 2G \
       -smp 2 \
@@ -94,7 +94,7 @@ test_bz() {
       check_boot=""
       check_boot=$(cat ${DEST}/${line}_dmesg.log | grep  " login\:")
       [[ -n "$check_boot" ]] && {
-        print_log "It takes $i seconds to find login:$check_boot" "$BISECT_LOG"
+        print_log "It takes $i seconds to find login:$check_boot" "$KCOV_LOG"
         break
       }
     done
@@ -104,10 +104,11 @@ test_bz() {
       check_umip=""
       check_umip=$(cat ${DEST}/${line}_dmesg.log | grep  "UMIP")
       if [[ -n "$check_umip" ]]; then
-        print_log "Boot $try_num time: takes $i seconds >= $BOOT_TIME and has UMIP dmesg, retry" "$BISECT_LOG"
+        print_log "Boot $try_num time: takes $i seconds >= $BOOT_TIME and has UMIP dmesg, retry" "$KCOV_LOG"
         # If this time boot VM timeout, need to clean old vm.
       else
-        print_log "Boot $try_num time: takes $i seconds >= $BOOT_TIME and no UMIP dmesg, KCOV nok." "$BISECT_LOG"
+        print_log "Boot $try_num time: takes $i seconds >= $BOOT_TIME and no UMIP dmesg, KCOV nok." "$KCOV_LOG"
+        print_log "$KCOV_ORI:$(cat "$KCOV_ORI") in $KCOV_RESULT" "$KCOV_LOG"
         cat "$KCOV_ORI" >> "$KCOV_RESULT"
         echo "Line:$line" >> "$KCOV_DETAIL"
         cat "$KCOV_ORI" >> "$KCOV_DETAIL"
@@ -117,7 +118,7 @@ test_bz() {
       fi
       clean_old_vm
     else
-      print_log "Boot $try_num time: takes $i seconds to boot up." "$BISECT_LOG"
+      print_log "Boot $bz_file $try_num time: takes $i seconds to boot up." "$KCOV_LOG"
       cat "$KCOV_TAR" >> "$KCOV_RESULT"
       echo "Line:$line" >> "$KCOV_DETAIL"
       cat "$KCOV_TAR" >> "$KCOV_DETAIL"
@@ -129,7 +130,7 @@ test_bz() {
 
     # If boot boot_try_max times failed, will exit
     if [[ "$try_num" -ge "$boot_try_max" ]]; then
-      print_log "Boot $try_num >=$boot_try_max times failed, bzImage:$bz_file, exit!" "$BISECT_LOG"
+      print_log "Boot $try_num >=$boot_try_max times failed, bzImage:$bz_file, exit!" "$KCOV_LOG"
       cat "$KCOV_ORI" >> "$KCOV_RESULT"
       echo "Line:$line" >> "$KCOV_DETAIL"
       cat "$KCOV_ORI" >> "$KCOV_DETAIL"
@@ -163,6 +164,7 @@ filter_kcov() {
     exit 1
   fi
 
+  print_log "${DEST}/${bzImage-$line} $line" "$KCOV_LOG"
   test_bz "${DEST}/${bzImage-$line}" "$line"
 }
 
