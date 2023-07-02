@@ -34,12 +34,16 @@ prepare_bzimage() {
   local bzimage=$1
   local line=$2
 
-  print_log "${BASE_PATH}/make_bz.sh -k $KERNEL_SRC -m $END_COMMIT -d $DEST -o $KERNEL_PATH -f $bzimage -l $line" "$KCOV_LOG"
-  cd "$BASE_PATH" || {
-    print_log "Access $BASE_PATH failed" "$KCOV_LOG"
-    exit 1
-  }
-  ${BASE_PATH}/make_bz.sh -k "$KERNEL_SRC" -m "$END_COMMIT" -d "$DEST" -o "$KERNEL_PATH" -f "$bzimage" -l "$line"
+  if [[ -e "${DEST}/${bzimage}" ]]; then
+    print_log "bzImage:${DEST}/${bzimage} already exists, no need make!" "$KCOV_LOG"
+  else
+    print_log "${BASE_PATH}/make_bz.sh -k $KERNEL_SRC -m $END_COMMIT -d $DEST -o $KERNEL_PATH -f $bzimage -l $line" "$KCOV_LOG"
+    cd "$BASE_PATH" || {
+      print_log "Access $BASE_PATH failed" "$KCOV_LOG"
+      exit 1
+    }
+    ${BASE_PATH}/make_bz.sh -k "$KERNEL_SRC" -m "$END_COMMIT" -d "$DEST" -o "$KERNEL_PATH" -f "$bzimage" -l "$line"
+  fi
 }
 
 clean_old_vm() {
@@ -155,17 +159,18 @@ filter_kcov() {
   for((line=42;line<=143;line++)); do
     print_log "prepare_bzimage bzImage-$line" "$KCOV_LOG"
     prepare_bzimage "bzImage-$line" "$line"
+
+    if [[ -e "${DEST}/${bzImage-$line}" ]]; then
+      print_log "Find ${DEST}/${bzImage-$line}" "$KCOV_LOG"
+    else
+      print_log "No ${DEST}/${bzImage-$line}, exit!" "$KCOV_LOG"
+      exit 1
+    fi
+
+    print_log "${DEST}/${bzImage-$line} $line" "$KCOV_LOG"
+    test_bz "${DEST}/${bzImage-$line}" "$line"
   done
-
-  if [[ -e "${DEST}/${bzImage-$line}" ]]; then
-    print_log "Find ${DEST}/${bzImage-$line}" "$KCOV_LOG"
-  else
-    print_log "No ${DEST}/${bzImage-$line}, exit!" "$KCOV_LOG"
-    exit 1
-  fi
-
-  print_log "${DEST}/${bzImage-$line} $line" "$KCOV_LOG"
-  test_bz "${DEST}/${bzImage-$line}" "$line"
+  print_log "All kcov filter test is done!" "$KCOV_LOG"
 }
 
 filter_kcov
