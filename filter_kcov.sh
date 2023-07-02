@@ -147,6 +147,8 @@ test_bz() {
 
 filter_kcov() {
   local line=42
+  local bz=""
+  local bz_file=""
 
   cat /dev/null > "$KCOV_RESULT"
   cat /dev/null > "$KCOV_DETAIL"
@@ -157,18 +159,22 @@ filter_kcov() {
   }
 
   for((line=42;line<=143;line++)); do
-    print_log "prepare_bzimage bzImage-$line" "$KCOV_LOG"
-    prepare_bzimage "bzImage-$line" "$line"
+    bz=""
+    bz_file=""
+    bz="bzImage-${line}"
+    bz_file="${DEST}/${bz}"
+    print_log "prepare_bzimage $bz" "$KCOV_LOG"
+    prepare_bzimage "$bz" "$line"
 
-    if [[ -e "${DEST}/${bzImage-$line}" ]]; then
-      print_log "Find ${DEST}/${bzImage-$line}" "$KCOV_LOG"
+    if [[ -e "$bz_file" ]]; then
+      print_log "Find $bz_file" "$KCOV_LOG"
     else
-      print_log "No ${DEST}/${bzImage-$line}, exit!" "$KCOV_LOG"
+      print_log "No $bz_file, exit!" "$KCOV_LOG"
       exit 1
     fi
 
-    print_log "${DEST}/${bzImage-$line} $line" "$KCOV_LOG"
-    test_bz "${DEST}/${bzImage-$line}" "$line"
+    print_log "$bz_file $line" "$KCOV_LOG"
+    test_bz "$bz_file" "$line"
   done
   print_log "All kcov filter test is done!" "$KCOV_LOG"
 }
