@@ -4,6 +4,8 @@ source "kcov_common.sh"
 
 readonly temp_sh="/root/tmp.sh"
 
+DATE_SS=$(date +%s)
+
 KCONFIG_NAME="kconfig"
 KCONFIG="https://raw.githubusercontent.com/xupengfe/kconfig_diff/main/config-5.18rc4i_kvm"
 BZ_LOG="make_bz.log"
@@ -191,7 +193,7 @@ make_bzimage() {
     DATE_END=$(date +"$TIME_FMT")
     DATE_ES=$(date +%s)
     echo "DATE_END:$DATE_END" >> "$STATUS"
-    USE_SEC=$(( $DATE_ES - $DATE_SS ))
+    USE_SEC=$((DATE_ES - DATE_SS))
 
     print_log "Used $USE_SEC seconds to make bzImage" "$STATUS"
   else
