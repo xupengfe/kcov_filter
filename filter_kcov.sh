@@ -34,16 +34,17 @@ prepare_bzimage() {
   local bzimage=$1
   local line=$2
 
-  if [[ -e "${DEST}/${bzimage}" ]]; then
-    print_log "bzImage:${DEST}/${bzimage} already exists, no need make!" "$KCOV_LOG"
-  else
-    print_log "${BASE_PATH}/make_bz.sh -k $KERNEL_SRC -m $END_COMMIT -d $DEST -o $KERNEL_PATH -f $bzimage -l $line" "$KCOV_LOG"
-    cd "$BASE_PATH" || {
-      print_log "Access $BASE_PATH failed" "$KCOV_LOG"
-      exit 1
-    }
-    ${BASE_PATH}/make_bz.sh -k "$KERNEL_SRC" -m "$END_COMMIT" -d "$DEST" -o "$KERNEL_PATH" -f "$bzimage" -l "$line"
-  fi
+  # Could not use existed bzImage, because it needs to get the lines change when make bzImage!
+  #if [[ -e "${DEST}/${bzimage}" ]]; then
+  #  print_log "bzImage:${DEST}/${bzimage} already exists, no need make!" "$KCOV_LOG"
+  #else
+  print_log "${BASE_PATH}/make_bz.sh -k $KERNEL_SRC -m $END_COMMIT -d $DEST -o $KERNEL_PATH -f $bzimage -l $line" "$KCOV_LOG"
+  cd "$BASE_PATH" || {
+    print_log "Access $BASE_PATH failed" "$KCOV_LOG"
+    exit 1
+  }
+  ${BASE_PATH}/make_bz.sh -k "$KERNEL_SRC" -m "$END_COMMIT" -d "$DEST" -o "$KERNEL_PATH" -f "$bzimage" -l "$line"
+  #fi
 }
 
 clean_old_vm() {

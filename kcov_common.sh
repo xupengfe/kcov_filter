@@ -147,13 +147,13 @@ prepare_kernel() {
     do_common_cmd "echo $make_num > $NUM_FILE"
   fi
 
-  if [[ "$make_num" -eq 0 ]]; then
-    print_log "First time make bzImage, copy and clean it" "$log_file"
-    copy_kernel "$ker_src" "$ker_path" "$log_file"
+  # Will clean it everytime, becasue it's for kcov Makefile check!
+  #if [[ "$make_num" -eq 0 ]]; then
+    print_log "make distclean and git clean -fdx every time!" "$log_file"
     do_common_cmd "cd $KERNEL_TARGET_PATH"
     do_common_cmd "make distclean"
     do_common_cmd "git clean -fdx"
-  fi
+  #fi
   ((make_num+=1))
   print_log "make_num:$make_num" "$log_file"
   do_common_cmd "echo $make_num > $NUM_FILE"
