@@ -133,11 +133,6 @@ make_bzimage() {
     exit 1
   }
 
-  cpu_num=$(cat /proc/cpuinfo | grep processor | wc -l)
-  # avoid adl make kernel failed
-  ((cpu_num-=4))
-  do_cmd "cd $kernel_target_folder"
-
   if [[ -z "$LINE" ]]; then
     print_log "No LINE:$LINE, no need special action" "$STATUS"
   else
@@ -161,10 +156,26 @@ make_bzimage() {
     print_log "LINE:$LINE $KCOV_TAR:$(cat "$KCOV_TAR")" "$STATUS"
   fi
 
-  print_log "make -j1 bzImage" "$STATUS"
+
+  cpu_num=$(cat /proc/cpuinfo | grep processor | wc -l)
+  # avoid adl make kernel failed
+  ((cpu_num-=4))
+  do_cmd "cd $kernel_target_folder"
+
+  [[ "$cpu_num" -le 0 ]] && {
+    print_log "[WARN] cpu_num:$cpu_num is less or equal to 0, will set 1 anyway!" "$STATUS"
+    cpu_num=1
+  }
+
   # make -j more threads cause make bzImage failed, so used j1 #TODO for more
-  print_log "make -j1 bzImage for $COMMIT" "$STATUS"
-  make -j1 bzImage 2>> "$STATUS"
+  # print_log "make ARCH=x86_64 -j1 bzImage for $COMMIT" "$STATUS"
+  # make ARCH=x86_64 -j1 bzImage 2>> "$STATUS"
+
+  # It's the best way to make bzImage
+  print_log "make ARCH=x86_64 -j${cpu_num} for $COMMIT" "$STATUS"
+  make ARCH=x86_64 -j${cpu_num} 2>> "$STATUS"
+  print_log "make ARCH=x86_64 -j1 bzImage" "$STATUS"
+  make ARCH=x86_64 -j1 bzImage 2>> "$STATUS"
   result_make=$?
   #do_cmd "make -j${cpu_num} bzImage"
 
